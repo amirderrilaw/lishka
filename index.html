@@ -2391,8 +2391,21 @@ function gToken(interactive) {
 }
 async function gFetchProfile() {
   const j = await (await gFetch("https://www.googleapis.com/oauth2/v3/userinfo")).json();
-  G.profile = { email: (j.email || "").toLowerCase(), name: j.name || j.email, picture: j.picture || "" };
+  const email = (j.email || "").toLowerCase();
+  // השם המלא כפי שמוגדר בחשבון הגוגל של המתחבר; אם אין — הרכבה מפרטי השם, ולבסוף תחילית המייל
+  const full = (j.name || ((j.given_name || "") + " " + (j.family_name || "")).trim() || email.split("@")[0]).trim();
+  G.profile = { email, name: full || email, picture: j.picture || "" };
   localStorage.setItem(GSESS_KEY, JSON.stringify(G.profile));
+  // רענון חי: אם השם/תמונה בחשבון גוגל השתנו מאז הכניסה הקודמת — לעדכן את הממשק מיד
+  if (G.active && S.meta && S.meta.users && S.meta.users.length) {
+    const u = S.meta.users[0];
+    if (u.email === email && (u.name !== G.profile.name || u.picture !== G.profile.picture)) {
+      u.name = G.profile.name; u.picture = G.profile.picture;
+      gDirSet(email, G.profile.name, G.profile.picture);
+      saveMeta();
+      renderUserBtn(); renderDash();
+    }
+  }
 }
 async function gSignIn() {
   try {
