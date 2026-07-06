@@ -2210,7 +2210,7 @@ const GSESS_KEY = "lishka-gsess";
 const GSCOPES = "openid email profile https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/calendar.events";
 /* הגדרות משרדיות צרובות — נקבעו בהקמה; ניתן לעדכן דרך מסך ההגדרות */
 const G_BAKED = {
-  clientId: "1097165461846-do8stjurmqde1uft0pn41t3a9s1sj8ob.apps.googleusercontent.com",
+  clientId: "969581560045-jocslepng0538ela5hjb14hm8timsb8v.apps.googleusercontent.com",
   hostUrl: "https://amirderrilaw.github.io/lishka/"
 };
 const G = {
@@ -2221,10 +2221,11 @@ const G = {
   grants: [], dir: {}, syncMap: {}, dirty: new Set(), wsDirty: false,
   timer: null, syncing: false, lastSync: 0, _belled: false, _wired: false
 };
+const G_STALE_IDS = ["1097165461846-do8stjurmqde1uft0pn41t3a9s1sj8ob.apps.googleusercontent.com"]; // מזהים ישנים שהוחלפו — יש להתעלם מהם
 function gLoadConf() {
   try {
     const saved = JSON.parse(localStorage.getItem(GCONF_KEY) || "{}");
-    if (saved.clientId) G.conf.clientId = saved.clientId;
+    if (saved.clientId && G_STALE_IDS.indexOf(saved.clientId) < 0) G.conf.clientId = saved.clientId;
     if (saved.hostUrl) G.conf.hostUrl = saved.hostUrl;
   } catch (e) {}
 }
