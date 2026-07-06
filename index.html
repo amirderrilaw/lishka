@@ -2208,15 +2208,26 @@ function initFiles() {
 const GCONF_KEY = "lishka-gconf";
 const GSESS_KEY = "lishka-gsess";
 const GSCOPES = "openid email profile https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/calendar.events";
+/* הגדרות משרדיות צרובות — נקבעו בהקמה; ניתן לעדכן דרך מסך ההגדרות */
+const G_BAKED = {
+  clientId: "1097165461846-do8stjurmqde1uft0pn41t3a9s1sj8ob.apps.googleusercontent.com",
+  hostUrl: "https://amirderrilaw.github.io/lishka/"
+};
 const G = {
-  active: false, conf: { clientId: "", hostUrl: "" }, profile: null,
+  active: false, conf: { clientId: G_BAKED.clientId, hostUrl: G_BAKED.hostUrl }, profile: null,
   token: "", tokenExp: 0, tokenClient: null, hadAuth: false,
   mock: false, mockKey: "lishka-mock-drive",
   folderId: "", docsFolderId: "", wsId: "", wsUpdatedAt: 0,
   grants: [], dir: {}, syncMap: {}, dirty: new Set(), wsDirty: false,
   timer: null, syncing: false, lastSync: 0, _belled: false, _wired: false
 };
-function gLoadConf() { try { Object.assign(G.conf, JSON.parse(localStorage.getItem(GCONF_KEY) || "{}")); } catch (e) {} }
+function gLoadConf() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(GCONF_KEY) || "{}");
+    if (saved.clientId) G.conf.clientId = saved.clientId;
+    if (saved.hostUrl) G.conf.hostUrl = saved.hostUrl;
+  } catch (e) {}
+}
 function gSaveConfLS() { localStorage.setItem(GCONF_KEY, JSON.stringify(G.conf)); }
 function gHash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
 function gPairKey(a, b) { return [String(a).toLowerCase(), String(b).toLowerCase()].sort().join("|"); }
@@ -2414,6 +2425,7 @@ async function gBoot() {
     return true;
   }
   if (!G.conf.clientId) return false;
+  if (location.hostname.endsWith("claude.ai") || location.hostname.includes("claudeusercontent")) return false; // עותק תצוגה — מצב מקומי בלבד
   if (location.protocol === "file:") { gGateFileNote(); return false; }
   let sess = null; try { sess = JSON.parse(localStorage.getItem(GSESS_KEY) || "null"); } catch (e) {}
   try { await gLoadGis(); } catch (e) { toast("אין חיבור לאינטרנט — עובדים במצב מקומי", { ms: 6000 }); return false; }
@@ -2441,7 +2453,10 @@ function gGate() {
   $("gateLocal").addEventListener("click", async () => { dlg.close(); await localBoot(); });
 }
 function gGateFileNote() {
-  toast("חיבור גוגל מוגדר, אך התחברות אפשרית רק מכתובת אינטרנט (לא מקובץ מקומי). ראו הגדרות ← חיבור לענן.", { ms: 9000 });
+  toast("זהו העותק המקומי (ללא ענן). לעבודה המשותפת עם התחברות גוגל — הגרסה המקוונת:", {
+    ms: 9000, label: "פתיחה",
+    action: () => { if (G.conf.hostUrl) window.open(G.conf.hostUrl, "_blank"); }
+  });
 }
 async function gCloudBoot() {
   G.active = true;
