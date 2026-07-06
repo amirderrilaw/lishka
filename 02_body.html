@@ -1,0 +1,539 @@
+<body>
+<style>
+/* ===== גרסה 2: ענן גוגל ===== */
+.gbtn{display:inline-flex;align-items:center;gap:12px;background:#fff;color:#1f1f1f;border:1px solid #dadce0;border-radius:24px;padding:11px 22px;font-weight:600;font-size:1rem;min-height:48px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.gbtn:hover{background:#f7f9ff;border-color:#c7d3ea}
+.gbtn svg{width:22px;height:22px;flex:none}
+html[data-theme="dark"] .gbtn{background:#e8eef5;color:#17222e}
+dialog.gate{max-width:min(470px,94vw);text-align:center}
+.gate-logo{width:74px;height:74px;border-radius:20px;background:linear-gradient(135deg,var(--navy),var(--navy2));display:grid;place-items:center;margin:0 auto 14px;color:var(--gold);border:2px solid var(--gold)}
+.gate-logo svg{width:42px;height:42px}
+#syncPill{display:none;align-items:center;gap:7px;margin-inline-start:auto;align-self:center;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:.8rem;font-weight:600;color:var(--muted);white-space:nowrap}
+#syncPill.on{display:inline-flex}
+#syncPill .sdot{width:9px;height:9px;border-radius:50%;background:#8494a8;flex:none}
+#syncPill.ok .sdot{background:var(--green)}
+#syncPill.syncing .sdot{background:var(--gold);animation:pulse 1s infinite}
+#syncPill.err .sdot{background:var(--red)}
+@keyframes pulse{50%{opacity:.35}}
+#tabs #reqBell{display:none;align-items:center;gap:6px;align-self:center;margin-inline-start:8px;background:var(--gold-soft);border:1px solid var(--gold);color:var(--gold-strong);border-radius:999px;padding:5px 13px;font-size:.8rem;font-weight:700;cursor:pointer;min-height:34px}
+#tabs #reqBell.on{display:inline-flex}
+.tagchip{display:inline-flex;align-items:center;gap:6px;background:var(--purple-soft);color:var(--purple);border-radius:999px;padding:3px 10px;font-size:.8rem;font-weight:600;margin:2px}
+.tagchip button{background:none;border:0;color:inherit;cursor:pointer;padding:0 2px;font-size:.95rem;line-height:1}
+.sharedby{display:inline-flex;align-items:center;gap:5px;background:var(--purple-soft);color:var(--purple);border-radius:6px;padding:1px 8px;font-size:.74rem;font-weight:700;margin-top:3px}
+.reqrow{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid var(--line2)}
+.reqrow:last-child{border-bottom:0}
+.gavatar{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--gold)}
+.gsteps{counter-reset:st;font-size:.9rem}
+.gsteps>div{display:flex;gap:10px;margin:9px 0;align-items:flex-start}
+.gsteps>div::before{counter-increment:st;content:counter(st);flex:none;width:23px;height:23px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:.75rem;font-weight:700}
+html[data-theme="dark"] .gsteps>div::before{background:var(--gold);color:#221a04}
+.copyline{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px dashed var(--line);border-radius:9px;padding:6px 10px;font-family:Consolas,monospace;font-size:.78rem;direction:ltr;text-align:left;word-break:break-all;margin:5px 0}
+.copyline button{flex:none}
+.gstatus{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:11px;margin-bottom:12px;font-weight:600;font-size:.92rem}
+.gstatus.on{background:var(--green-soft);color:var(--green)}
+.gstatus.off{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+</style>
+<a class="skip" href="#main">דילוג לתוכן הראשי</a>
+
+<header id="topbar">
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><i class="ic" data-ic="scale"></i></div>
+    <div>
+      <div id="officeNameEl" role="button" tabindex="0" title="לחיצה לעריכת שם המשרד">המשרד שלי</div>
+      <div class="brand-sub">לשכה · מערכת עדכונים ומעקב תיקים</div>
+    </div>
+  </div>
+  <div class="clock" role="group" aria-label="תאריך ושעה, זמן ירושלים">
+    <div id="clockTime" class="num">--:--:--</div>
+    <div class="clock-dates">
+      <span id="clockGreg"></span>
+      <span class="dot" aria-hidden="true">·</span>
+      <span id="clockHeb"></span>
+      <span class="dot" aria-hidden="true">·</span>
+      <span title="אזור זמן">ירושלים</span>
+    </div>
+  </div>
+  <div class="top-actions">
+    <div class="searchbox">
+      <i class="ic" data-ic="search"></i>
+      <input id="globalSearch" type="search" placeholder="חיפוש תיקים ומסמכים..." aria-label="חיפוש כללי במערכת">
+    </div>
+    <button id="themeBtn" class="iconbtn" aria-label="החלפת מצב תצוגה בהיר או כהה" title="מצב תצוגה"><i class="ic" data-ic="moon"></i></button>
+    <button id="helpBtn" class="iconbtn" aria-label="עזרה ומדריך" title="עזרה"><i class="ic" data-ic="help"></i></button>
+    <button id="settingsBtn" class="iconbtn" aria-label="הגדרות" title="הגדרות"><i class="ic" data-ic="gear"></i></button>
+    <button id="userBtn" class="avatarbtn" aria-label="החלפת משתמש פעיל" title="משתמש פעיל">
+      <span id="userAvatar" class="avatar" style="background:#2563eb">?</span>
+    </button>
+  </div>
+</header>
+
+<nav id="tabs" role="tablist" aria-label="ניווט ראשי">
+  <button data-tab="dash" class="active" role="tab" aria-selected="true"><i class="ic" data-ic="grid"></i> לוח בקרה</button>
+  <button data-tab="cases" role="tab" aria-selected="false"><i class="ic" data-ic="case"></i> תיקים <span class="count num" id="countCases">0</span></button>
+  <button data-tab="files" role="tab" aria-selected="false"><i class="ic" data-ic="folder"></i> מסמכים <span class="count num" id="countFiles">0</span></button>
+  <button data-tab="share" role="tab" aria-selected="false"><i class="ic" data-ic="share"></i> שיתוף ועדכונים</button>
+  <span id="syncPill" title="מצב סנכרון מול Google Drive"><span class="sdot"></span><span id="syncPillText">מקומי</span></span>
+  <button id="reqBell" title="בקשות תיוג ממתינות"><i class="ic" data-ic="users"></i> <span id="reqBellText"></span></button>
+</nav>
+
+<main id="main">
+
+  <!-- ===== לוח בקרה ===== -->
+  <section id="tab-dash" class="tab active">
+    <div class="dash-grid">
+      <div class="greeting">
+        <div>
+          <div class="gline"></div>
+          <h2 id="greetTitle">שלום</h2>
+          <div class="sub" id="greetSub"></div>
+        </div>
+        <button class="btn gold" id="dashAddCase"><i class="ic" data-ic="plus"></i> תיק חדש</button>
+      </div>
+      <button class="stat card" data-go="open"><span class="lbl"><i class="ic" data-ic="case"></i> תיקים פעילים</span><span class="val num" id="statActiveV">0</span><span class="foot">לחיצה להצגת כל התיקים הפתוחים</span></button>
+      <button class="stat card today" data-go="today"><span class="lbl"><i class="ic" data-ic="clock"></i> משימות להיום</span><span class="val num" id="statTodayV">0</span><span class="foot">מועד ביצוע: היום</span></button>
+      <button class="stat card warn" data-go="over"><span class="lbl"><i class="ic" data-ic="warn"></i> באיחור</span><span class="val num" id="statOverV">0</span><span class="foot">משימות שמועדן חלף</span></button>
+      <button class="stat card" data-go="week"><span class="lbl"><i class="ic" data-ic="calendar"></i> השבוע הקרוב</span><span class="val num" id="statWeekV">0</span><span class="foot">משימות בשבעת הימים הקרובים</span></button>
+      <div class="dash-cols">
+        <div class="card">
+          <div class="card-h"><i class="ic" data-ic="clock"></i> משימות קרובות <span class="grow"></span><button class="btn sm ghost" data-goto="cases">לכל התיקים</button></div>
+          <div class="card-b list" id="dueList"></div>
+        </div>
+        <div class="share-col">
+          <div class="card">
+            <div class="card-h"><i class="ic" data-ic="refresh"></i> פעילות אחרונה</div>
+            <div class="card-b list" id="activityList"></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><i class="ic" data-ic="folder"></i> אחסון וגיבוי</div>
+            <div class="card-b">
+              <div class="meter" aria-hidden="true"><div id="storageBar" style="width:2%"></div></div>
+              <p class="small muted" id="storageText" style="margin-top:8px">בודק נפח אחסון…</p>
+              <p class="small muted" id="backupLine"></p>
+              <button class="btn sm" id="dashExportBtn"><i class="ic" data-ic="download"></i> גיבוי מלא עכשיו</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== תיקים ===== -->
+  <section id="tab-cases" class="tab">
+    <div class="toolbar">
+      <button class="btn gold" id="addCaseBtn"><i class="ic" data-ic="plus"></i> תיק חדש</button>
+      <div class="chipbar" id="caseChips" role="group" aria-label="סינון מהיר">
+        <button class="fchip on" data-chip="all">הכל</button>
+        <button class="fchip" data-chip="open">פעילים</button>
+        <button class="fchip" data-chip="mine">שלי</button>
+        <button class="fchip" data-chip="today">להיום</button>
+        <button class="fchip" data-chip="week">השבוע</button>
+        <button class="fchip" data-chip="over">באיחור</button>
+      </div>
+      <span class="grow"></span>
+      <div class="searchbox2"><i class="ic" data-ic="search"></i><input id="caseSearch" type="search" placeholder="חיפוש תיק, לקוח, משימה..." aria-label="חיפוש בתיקים"></div>
+      <select class="inp" id="filterOwner" aria-label="סינון לפי אחראי"><option value="">כל האחראים</option></select>
+      <select class="inp" id="filterType" aria-label="סינון לפי סוג תיק"><option value="">כל הסוגים</option></select>
+      <select class="inp" id="filterStatus" aria-label="סינון לפי סטטוס"><option value="">כל הסטטוסים</option></select>
+      <button class="btn" id="printReportBtn" title="דוח מודפס של התיקים המוצגים"><i class="ic" data-ic="print"></i> דוח</button>
+      <button class="btn" id="csvBtn" title="ייצוא הטבלה לקובץ שנפתח באקסל"><i class="ic" data-ic="sheet"></i> אקסל</button>
+    </div>
+    <div class="tablewrap">
+      <table class="cases" id="casesTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-col="name">שם התיק <span class="arr">▲</span></th>
+            <th class="sortable" data-col="type">סוג תיק <span class="arr">▲</span></th>
+            <th>עדכון אחרון</th>
+            <th>משימה הבאה</th>
+            <th class="sortable" data-col="dueDate">מועד ביצוע <span class="arr">▲</span></th>
+            <th class="sortable" data-col="owner">אחראי תיק <span class="arr">▲</span></th>
+            <th class="sortable" data-col="status">סטטוס <span class="arr">▲</span></th>
+            <th aria-label="פעולות"></th>
+          </tr>
+        </thead>
+        <tbody id="casesBody"></tbody>
+      </table>
+      <div class="empty hidden" id="casesEmpty"><i class="ic" data-ic="case"></i><div>לא נמצאו תיקים תואמים</div><p class="small muted">אפשר להוסיף תיק חדש או לנקות את הסינון</p></div>
+    </div>
+  </section>
+
+  <!-- ===== מסמכים ===== -->
+  <section id="tab-files" class="tab">
+    <div class="toolbar">
+      <button class="btn gold" id="uploadBtn"><i class="ic" data-ic="upload"></i> העלאת קבצים</button>
+      <span class="grow"></span>
+      <div class="searchbox2"><i class="ic" data-ic="search"></i><input id="fileSearch" type="search" placeholder="חיפוש מסמך..." aria-label="חיפוש במסמכים"></div>
+      <select class="inp" id="fileFilterCase" aria-label="סינון לפי תיק"><option value="">כל התיקים</option><option value="__none">ללא שיוך לתיק</option></select>
+      <select class="inp" id="fileFilterKind" aria-label="סינון לפי סוג קובץ">
+        <option value="">כל הסוגים</option><option value="pdf">PDF</option><option value="img">תמונות</option><option value="vid">וידאו</option><option value="aud">אודיו</option><option value="txt">טקסט</option><option value="oth">אחר</option>
+      </select>
+      <select class="inp" id="fileSort" aria-label="מיון">
+        <option value="new">חדש ← ישן</option><option value="old">ישן ← חדש</option><option value="name">לפי שם</option><option value="size">לפי גודל</option>
+      </select>
+    </div>
+    <div id="dropZone">
+      <i class="ic" data-ic="upload"></i>
+      <div><b>גרירת קבצים לכאן</b> או לחיצה על ״העלאת קבצים״</div>
+      <div class="small">מסמכים, תמונות, וידאו, אודיו — ללא הגבלת סוג. הקבצים נשמרים במאגר המקומי המאובטח של הדפדפן.</div>
+    </div>
+    <div class="card">
+      <div class="card-h"><i class="ic" data-ic="folder"></i> המסמכים שלי <span class="count num" id="filesCount" style="font-weight:600"></span><span class="grow"></span><span class="small muted">לחיצה על שורה פותחת את תפריט האפשרויות</span></div>
+      <div id="filesList"></div>
+      <div class="empty hidden" id="filesEmpty"><i class="ic" data-ic="folder"></i><div>אין עדיין מסמכים</div><p class="small muted">גררו קבצים לאזור ההעלאה או לחצו על ״העלאת קבצים״</p></div>
+    </div>
+  </section>
+
+  <!-- ===== שיתוף ועדכונים ===== -->
+  <section id="tab-share" class="tab">
+    <div class="share-grid">
+      <div class="share-col">
+        <div class="card">
+          <div class="card-h"><i class="ic" data-ic="mail"></i> שליחת עדכון תיקים בדוא״ל</div>
+          <div class="card-b">
+            <div class="toolbar" style="margin-bottom:8px">
+              <label class="pickrow" style="padding:4px 2px"><input type="checkbox" id="shareSelAll"> <b>בחירת הכול</b></label>
+              <span class="grow"></span>
+              <div class="searchbox2" style="min-height:38px;min-width:170px"><i class="ic" data-ic="search"></i><input id="shareSearch" type="search" placeholder="סינון רשימה..." aria-label="סינון רשימת תיקים לשיתוף"></div>
+            </div>
+            <div class="picklist" id="shareList"></div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin:12px 2px" class="small">
+              <b>מה לכלול:</b>
+              <label><input type="checkbox" id="incUpd" checked> עדכון אחרון</label>
+              <label><input type="checkbox" id="incTask" checked> משימה הבאה</label>
+              <label><input type="checkbox" id="incDue" checked> מועד ביצוע</label>
+              <label><input type="checkbox" id="incStatus" checked> סטטוס</label>
+              <label><input type="checkbox" id="incOwner" checked> אחראי</label>
+            </div>
+            <div class="field">
+              <label for="shareTo">נמענים (אפשר כמה כתובות, מופרדות בפסיק)</label>
+              <input class="inp" id="shareTo" type="text" inputmode="email" list="emailsDL" placeholder="lawyer@firm.co.il" style="direction:ltr;text-align:left">
+              <datalist id="emailsDL"></datalist>
+            </div>
+            <div class="field">
+              <label for="sharePreview">תצוגה מקדימה של ההודעה (ניתן לערוך לפני שליחה)</label>
+              <textarea class="inp" id="sharePreview" spellcheck="false"></textarea>
+            </div>
+            <div class="dlg-f" style="border:0;padding:0;justify-content:flex-start">
+              <button class="btn primary" id="shareMailto"><i class="ic" data-ic="mail"></i> פתיחה בתוכנת הדוא״ל</button>
+              <button class="btn" id="shareGmail"><i class="ic" data-ic="external"></i> פתיחה ב־Gmail</button>
+              <button class="btn" id="shareCopy"><i class="ic" data-ic="copy"></i> העתקה</button>
+              <button class="btn" id="sharePrint"><i class="ic" data-ic="print"></i> הדפסת דוח</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="share-col">
+        <div class="card hidden" id="grantsCard">
+          <div class="card-h"><i class="ic" data-ic="users"></i> הרשאות תיוג בין עורכי דין</div>
+          <div class="card-b">
+            <p class="small" style="margin-top:0">מבקשים הרשאה מעמית <b>פעם אחת</b> — ולאחר אישורו אפשר לתייג אותו בכל תיק, והתיק יופיע אצלו ברשימה.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              <input class="inp" id="grantEmail" type="email" placeholder="כתובת Gmail של העמית" style="flex:1;min-width:180px;direction:ltr;text-align:left">
+              <button class="btn primary" id="grantAskBtn"><i class="ic" data-ic="plus"></i> בקשת הרשאה</button>
+            </div>
+            <div class="list" id="grantsList"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><i class="ic" data-ic="users"></i> הזמנת עו״ד למערכת</div>
+          <div class="card-b">
+            <div class="okline"><i class="ic" data-ic="check"></i><span>שולחים לעמית את קובץ המערכת פעם אחת — והוא עובד אצלו באופן עצמאי ופרטי.</span></div>
+            <div class="okline"><i class="ic" data-ic="check"></i><span>מסנכרנים נתונים ביניכם בעזרת ״ייצוא ← שליחה במייל ← ייבוא ומיזוג״.</span></div>
+            <div class="field" style="margin-top:10px">
+              <label for="inviteName">שם העמית</label>
+              <input class="inp" id="inviteName" type="text" placeholder="עו״ד ישראל ישראלי">
+            </div>
+            <div class="field">
+              <label for="inviteEmail">דוא״ל</label>
+              <input class="inp" id="inviteEmail" type="email" placeholder="colleague@firm.co.il" style="direction:ltr;text-align:left">
+            </div>
+            <div class="dlg-f" style="border:0;padding:0;justify-content:flex-start">
+              <button class="btn primary" id="inviteSend"><i class="ic" data-ic="mail"></i> שליחת הזמנה</button>
+              <button class="btn" id="inviteCopy"><i class="ic" data-ic="copy"></i> העתקת ההוראות</button>
+            </div>
+            <p class="small muted" style="margin-top:10px">מיקום קובץ המערכת (לצירוף להודעה):</p>
+            <div class="pathbox"><span id="appPath">—</span></div>
+            <button class="btn sm" id="copyPathBtn" style="margin-top:8px"><i class="ic" data-ic="copy"></i> העתקת הנתיב</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><i class="ic" data-ic="refresh"></i> גיבוי, סנכרון וייבוא</div>
+          <div class="card-b">
+            <p class="small" style="margin-top:0">הנתונים נשמרים באופן מקומי ופרטי בדפדפן זה. מומלץ לייצא גיבוי בסוף כל יום עבודה ולשמור בתיקיית המשרד.</p>
+            <div class="dlg-f" style="border:0;padding:0;justify-content:flex-start">
+              <button class="btn primary" id="exportFullBtn"><i class="ic" data-ic="download"></i> ייצוא מלא (כולל קבצים)</button>
+              <button class="btn" id="exportLiteBtn"><i class="ic" data-ic="download"></i> ייצוא טבלה בלבד (קל)</button>
+              <button class="btn" id="importBtn"><i class="ic" data-ic="import"></i> ייבוא ומיזוג</button>
+            </div>
+            <p class="small muted" style="margin-bottom:0">בעת ייבוא, נתונים חדשים יותר גוברים על ישנים — כך אפשר למזג עבודה של כמה עורכי דין בלי לאבד דבר.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span id="footInfo">הנתונים נשמרים מקומית בדפדפן זה בלבד · מומלץ לגבות מדי יום</span>
+  <span id="footBackup"></span>
+  <span>לשכה · גרסה 2.0 (ענן גוגל)</span>
+</footer>
+
+<!-- ===== תפריט הקשר ===== -->
+<div id="ctxMenu" role="menu"></div>
+<div id="toasts" aria-live="polite"></div>
+
+<!-- ===== שער התחברות (מצב ענן) ===== -->
+<dialog id="gateModal" class="gate">
+  <div class="dlg-b" style="padding:34px 28px">
+    <div class="gate-logo"><i class="ic" data-ic="scale"></i></div>
+    <h2 style="margin-bottom:4px" id="gateOffice">לשכה</h2>
+    <p class="muted" style="margin-bottom:22px">מערכת עדכונים ומעקב תיקים למשרד עורכי דין</p>
+    <div id="gateBody"></div>
+    <p class="small muted" style="margin-top:20px">ההתחברות באמצעות חשבון Google. הנתונים נשמרים בדרייב הפרטי של כל משתמש — לא בשרת חיצוני.</p>
+  </div>
+</dialog>
+
+<!-- ===== בחירת עו״ד לתיוג ===== -->
+<dialog id="tagPickModal">
+  <div class="dlg-h"><i class="ic" data-ic="users"></i> תיוג עו״ד בתיק</div>
+  <div class="dlg-b">
+    <div class="list" id="tagPickList"></div>
+    <p class="helper" style="margin-top:10px">ברשימה מופיעים עמיתים שאישרו לך הרשאת תיוג. בקשת הרשאה חדשה — בלשונית ״שיתוף ועדכונים״.</p>
+  </div>
+  <div class="dlg-f"><button class="btn primary" data-close>סגירה</button></div>
+</dialog>
+
+<!-- ===== דיאלוג אישור ===== -->
+<dialog id="confirmModal" aria-labelledby="confirmTitle">
+  <div class="dlg-h"><i class="ic" data-ic="warn"></i><span id="confirmTitle">אישור</span></div>
+  <div class="dlg-b" id="confirmBody"></div>
+  <div class="dlg-f">
+    <button class="btn" id="confirmCancel">ביטול</button>
+    <button class="btn danger" id="confirmOk">אישור</button>
+  </div>
+</dialog>
+
+<!-- ===== פתיחה ראשונה ===== -->
+<dialog id="onboardModal">
+  <div class="dlg-h"><i class="ic" data-ic="scale"></i> ברוכים הבאים ללשכה</div>
+  <div class="dlg-b">
+    <p style="margin-top:0">מערכת עדכונים ומעקב תיקים למשרד עורכי דין. דקה אחת של הגדרה — ומתחילים.</p>
+    <div class="field"><label class="req" for="obOffice">שם המשרד</label><input class="inp" id="obOffice" type="text" placeholder="לדוגמה: כהן, לוי ושות׳ – משרד עורכי דין"></div>
+    <div class="field"><label class="req" for="obName">השם שלך</label><input class="inp" id="obName" type="text" placeholder="עו״ד ישראל ישראלי"></div>
+    <div class="field"><label for="obEmail">דוא״ל (לחתימה על עדכונים)</label><input class="inp" id="obEmail" type="email" placeholder="you@firm.co.il" style="direction:ltr;text-align:left"></div>
+    <p class="helper">הנתונים נשמרים במחשב זה בלבד, באופן פרטי. אפשר להוסיף עורכי דין נוספים בהמשך דרך ההגדרות.</p>
+  </div>
+  <div class="dlg-f" style="justify-content:space-between">
+    <button class="btn ghost" id="obImport"><i class="ic" data-ic="import"></i> יש לי קובץ גיבוי — ייבוא</button>
+    <button class="btn gold" id="obStart">התחלת עבודה <i class="ic" data-ic="check"></i></button>
+  </div>
+</dialog>
+
+<!-- ===== עדכון מהיר ===== -->
+<dialog id="quickUpdModal">
+  <div class="dlg-h"><i class="ic" data-ic="edit"></i> עדכון תיק: <span id="quCase" style="color:var(--gold-strong)"></span></div>
+  <div class="dlg-b">
+    <div class="field"><label for="quText">מה העדכון האחרון בתיק?</label><textarea class="inp" id="quText" rows="5" placeholder="לדוגמה: התקיים דיון קדם משפט; ביהמ״ש הורה על השלמת תצהירים עד 20.7"></textarea></div>
+    <p class="helper">העדכון הקודם נשמר אוטומטית ביומן הפעילות של התיק.</p>
+  </div>
+  <div class="dlg-f">
+    <button class="btn" data-close>ביטול</button>
+    <button class="btn gold" id="quSave">שמירת העדכון</button>
+  </div>
+</dialog>
+
+<!-- ===== כרטיס תיק (מגירה) ===== -->
+<dialog id="caseDrawer" class="drawer" aria-label="כרטיס תיק">
+  <div class="dlg-h"><i class="ic" data-ic="case"></i> כרטיס תיק <span class="grow"></span>
+    <button class="btn sm" id="drPrint"><i class="ic" data-ic="print"></i> הדפסה</button>
+    <button class="iconbtn x" data-close aria-label="סגירה" style="color:var(--muted)"><i class="ic" data-ic="x"></i></button>
+  </div>
+  <div class="dlg-b">
+    <div class="field"><label class="req" for="drName">שם התיק</label><input class="inp" id="drName" type="text"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+      <div class="field"><label for="drClient">לקוח</label><input class="inp" id="drClient" type="text"></div>
+      <div class="field"><label for="drNumber">מס׳ הליך / תיק בימ״ש</label><input class="inp" id="drNumber" type="text" placeholder="ת״א 12345-01-26"></div>
+      <div class="field"><label for="drType">סוג תיק</label><select class="inp" id="drType"></select></div>
+      <div class="field"><label for="drStatus">סטטוס</label><select class="inp" id="drStatus"></select></div>
+      <div class="field"><label for="drPriority">דחיפות</label><select class="inp" id="drPriority"></select></div>
+      <div class="field"><label for="drOwner">אחראי תיק</label><select class="inp" id="drOwner"></select></div>
+      <div class="field"><label for="drDue">מועד ביצוע</label><input class="inp" id="drDue" type="date"></div>
+      <div class="field"><label for="drTask">המשימה הבאה</label><input class="inp" id="drTask" type="text"></div>
+    </div>
+    <div class="card hidden" id="drTagSec" style="box-shadow:none;margin-bottom:14px">
+      <div class="card-h" style="padding:10px 14px;font-size:.94rem"><i class="ic" data-ic="users"></i> תיוג עורכי דין בתיק <span class="grow"></span><button class="btn sm" id="drTagBtn"><i class="ic" data-ic="plus"></i> תיוג</button></div>
+      <div class="card-b" id="drTags" style="padding:10px 14px"></div>
+    </div>
+    <div class="card hidden" id="drCalSec" style="box-shadow:none;margin-bottom:14px">
+      <div class="card-b" style="display:flex;align-items:center;gap:10px;padding:10px 14px">
+        <i class="ic" data-ic="calendar"></i><span class="grow small">מועד הביצוע של התיק ביומן גוגל שלך</span>
+        <button class="btn sm" id="drCalBtn">הוספה ליומן</button>
+        <a class="btn sm ghost hidden" id="drCalLink" target="_blank" rel="noopener">פתיחה ביומן</a>
+      </div>
+    </div>
+    <div class="field"><label for="drUpdate">עדכון אחרון</label><textarea class="inp" id="drUpdate" rows="3"></textarea></div>
+    <div class="field"><label for="drNotes">הערות פנימיות</label><textarea class="inp" id="drNotes" rows="3" placeholder="הערות חופשיות — נשמרות רק בכרטיס התיק"></textarea></div>
+    <p class="small muted" id="drMeta"></p>
+    <div class="card" style="box-shadow:none;margin-bottom:14px">
+      <div class="card-h" style="padding:10px 14px;font-size:.94rem"><i class="ic" data-ic="paperclip"></i> מסמכי התיק <span class="grow"></span><button class="btn sm" id="drUpload"><i class="ic" data-ic="upload"></i> צירוף</button></div>
+      <div class="list" id="drFiles" style="padding:4px 10px"></div>
+    </div>
+    <div class="card" style="box-shadow:none">
+      <div class="card-h" style="padding:10px 14px;font-size:.94rem"><i class="ic" data-ic="refresh"></i> יומן פעילות בתיק</div>
+      <div class="list" id="drActivity" style="padding:4px 10px;max-height:220px;overflow:auto"></div>
+    </div>
+  </div>
+  <div class="dlg-f" style="justify-content:space-between">
+    <button class="btn danger" id="drDelete"><i class="ic" data-ic="trash"></i> מחיקת תיק</button>
+    <button class="btn primary" data-close>סגירה</button>
+  </div>
+</dialog>
+
+<!-- ===== צופה מסמכים ===== -->
+<dialog id="viewerModal" class="viewer" aria-label="צפייה במסמך">
+  <div class="dlg-h" style="padding:10px 16px">
+    <span id="vwrTitle" style="display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">מסמך</span>
+    <span class="grow"></span>
+    <button class="btn sm" id="vwrTrBtn"><i class="ic" data-ic="lines"></i> תמלול לצד המסמך</button>
+    <button class="btn sm" id="vwrDownload"><i class="ic" data-ic="download"></i> הורדה</button>
+    <button class="btn sm" id="vwrPdf"><i class="ic" data-ic="file"></i> שמירה כ־PDF</button>
+    <button class="btn sm" id="vwrPrint"><i class="ic" data-ic="print"></i> הדפסה</button>
+    <button class="btn sm" id="vwrTab"><i class="ic" data-ic="external"></i> כרטיסייה חדשה</button>
+    <button class="iconbtn x" data-close aria-label="סגירת הצופה" style="color:var(--muted)"><i class="ic" data-ic="x"></i></button>
+  </div>
+  <div class="vwr-body">
+    <div class="vwr-doc" id="vwrDoc"></div>
+    <aside class="vwr-tr" aria-label="תמלול המסמך">
+      <div class="vwr-tr-h"><i class="ic" data-ic="lines"></i> תמלול
+        <span class="grow"></span>
+        <button class="btn sm" id="vwrExtract" title="חילוץ טקסט אוטומטי מתוך המסמך"><i class="ic" data-ic="refresh"></i> חילוץ אוטומטי</button>
+        <button class="btn sm ghost" id="vwrTrCopy" title="העתקת התמלול"><i class="ic" data-ic="copy"></i></button>
+        <button class="btn sm ghost" id="vwrTrPrint" title="הדפסת התמלול"><i class="ic" data-ic="print"></i></button>
+      </div>
+      <textarea id="vwrTrText" placeholder="כאן כותבים או מדביקים את התמלול / תקציר המסמך.&#10;&#10;במסמכי PDF אפשר לנסות ״חילוץ אוטומטי״ — והטקסט יופיע כאן לעריכה.&#10;&#10;הכול נשמר אוטומטית לצד הקובץ." spellcheck="false"></textarea>
+      <div class="vwr-tr-f">
+        <span id="vwrTrCount" class="num"></span>
+        <span class="grow"></span>
+        <span class="savedflash" id="vwrSaved">✓ נשמר</span>
+      </div>
+    </aside>
+  </div>
+</dialog>
+
+<!-- ===== שיוך לתיק ===== -->
+<dialog id="assignModal">
+  <div class="dlg-h"><i class="ic" data-ic="case"></i> שיוך מסמך לתיק</div>
+  <div class="dlg-b">
+    <div class="field"><label for="asgSelect">בחירת תיק</label><select class="inp" id="asgSelect"></select></div>
+  </div>
+  <div class="dlg-f"><button class="btn" data-close>ביטול</button><button class="btn gold" id="asgSave">שמירה</button></div>
+</dialog>
+
+<!-- ===== שינוי שם ===== -->
+<dialog id="renameModal">
+  <div class="dlg-h"><i class="ic" data-ic="edit"></i> שינוי שם מסמך</div>
+  <div class="dlg-b"><div class="field"><label for="rnInput">שם חדש</label><input class="inp" id="rnInput" type="text"></div></div>
+  <div class="dlg-f"><button class="btn" data-close>ביטול</button><button class="btn gold" id="rnSave">שמירה</button></div>
+</dialog>
+
+<!-- ===== דוח ייבוא ===== -->
+<dialog id="importReport">
+  <div class="dlg-h"><i class="ic" data-ic="import"></i> סיכום ייבוא ומיזוג</div>
+  <div class="dlg-b" id="impRepBody"></div>
+  <div class="dlg-f"><button class="btn primary" data-close>סגירה</button></div>
+</dialog>
+
+<!-- ===== הגדרות ===== -->
+<dialog id="settingsModal" class="wide">
+  <div class="dlg-h"><i class="ic" data-ic="gear"></i> הגדרות המערכת <span class="grow"></span><button class="iconbtn x" data-close aria-label="סגירה" style="color:var(--muted)"><i class="ic" data-ic="x"></i></button></div>
+  <div class="dlg-b">
+    <div class="field"><label for="setOffice">שם המשרד (מופיע בכותרת ובדוחות)</label><input class="inp" id="setOffice" type="text"></div>
+    <div class="field">
+      <label>צוות המשרד</label>
+      <div id="usersList" style="border:1.5px solid var(--line);border-radius:11px;padding:4px 12px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <input class="inp" id="nuName" type="text" placeholder="שם עו״ד חדש" style="flex:2;min-width:150px">
+        <input class="inp" id="nuEmail" type="email" placeholder="דוא״ל (רשות)" style="flex:2;min-width:150px;direction:ltr;text-align:left">
+        <button class="btn primary" id="addUserBtn"><i class="ic" data-ic="plus"></i> הוספה</button>
+      </div>
+      <p class="helper">המשתמש הפעיל נרשם כמבצע הפעולות ביומן הפעילות. מחליפים משתמש בלחיצה על העיגול בפינת המסך.</p>
+    </div>
+    <div class="field"><label for="setTheme">מראה</label>
+      <select class="inp" id="setTheme" style="max-width:220px"><option value="light">בהיר</option><option value="dark">כהה</option></select>
+    </div>
+    <div class="card" id="gCard" style="box-shadow:none;margin-bottom:14px">
+      <div class="card-h" style="padding:10px 14px"><i class="ic" data-ic="refresh"></i> חיבור לענן גוגל (רב־משתמשים)</div>
+      <div class="card-b">
+        <div class="gstatus off" id="gStatus">לא מחובר — המערכת פועלת במצב מקומי</div>
+        <div id="gActions" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <label class="small" style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input type="checkbox" id="gCalAuto"> הוספה אוטומטית של מועדי ביצוע ליומן גוגל שלי</label>
+        <div class="field"><label for="gClientId">מזהה לקוח (Client ID) — הגדרה חד־פעמית למשרד</label>
+          <input class="inp" id="gClientId" type="text" placeholder="123456789-xxxx.apps.googleusercontent.com" style="direction:ltr;text-align:left">
+        </div>
+        <div class="field"><label for="gHostUrl">כתובת המערכת באינטרנט (לאחר העלאה לאחסון)</label>
+          <input class="inp" id="gHostUrl" type="url" placeholder="https://your-office.github.io/lishka/" style="direction:ltr;text-align:left">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn primary" id="gSaveConf">שמירת הגדרות</button>
+          <button class="btn" id="gOfficeLink"><i class="ic" data-ic="copy"></i> העתקת קישור מוכן למשרד</button>
+        </div>
+        <details class="hlp"><summary>איך מפיקים מזהה לקוח? (מדריך של 10 דקות, פעם אחת למשרד)</summary>
+          <div class="hb gsteps" id="gWizard">
+            <div><span>נכנסים אל <b>console.cloud.google.com</b> עם חשבון הגוגל של המשרד ויוצרים פרויקט חדש (New Project) בשם ״לשכה״.</span></div>
+            <div><span>בתפריט: <b>APIs &amp; Services ← Library</b> — מחפשים ומפעילים (Enable) שניים: <b>Google Drive API</b> ו־<b>Google Calendar API</b>.</span></div>
+            <div><span><b>OAuth consent screen</b> ← בוחרים External ← ממלאים שם ״לשכה״ ואימייל ← ב־<b>Test users</b> מוסיפים את כתובות הג׳ימייל של כל עורכי הדין במשרד.</span></div>
+            <div><span><b>Credentials ← Create Credentials ← OAuth client ID</b> ← סוג: <b>Web application</b>.</span></div>
+            <div><span>תחת <b>Authorized JavaScript origins</b> מוסיפים את כתובת האתר שבה המערכת מתארחת (השדה למעלה), למשל:</span></div>
+            <div><span>מעתיקים את ה־<b>Client ID</b> שנוצר, מדביקים בשדה למעלה ולוחצים ״שמירת הגדרות״ — ומתחברים.</span></div>
+          </div>
+        </details>
+        <details class="hlp"><summary>איפה מעלים את הקובץ לאינטרנט? (נדרש להתחברות גוגל)</summary>
+          <div class="hb">
+            הדרך הפשוטה: <b>GitHub Pages</b> (חינם) — נרשמים ב־github.com, יוצרים מאגר (Repository) ציבורי חדש, מעלים את קובץ המערכת בכפתור ״Add file ← Upload files״, ואז ב־Settings ← Pages בוחרים Branch: main ← Save. בתוך דקות תתקבל כתובת קבועה. חלופות: Netlify, Cloudflare Pages, או אחסון האתר הקיים של המשרד. <b>חשוב:</b> הקובץ עצמו אינו מכיל תיקים — כל הנתונים נשמרים בחשבונות הגוגל, ולכן מותר לאחסן אותו בכל מקום.
+          </div>
+        </details>
+        <div id="gMigrateRow" class="hidden" style="margin-top:10px">
+          <button class="btn gold" id="gMigrateBtn"><i class="ic" data-ic="upload"></i> העברת הנתונים המקומיים לחשבון הענן שלי</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="box-shadow:none;border-color:var(--red);margin-top:6px">
+      <div class="card-b" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="grow"><b style="color:var(--red)">אזור מסוכן:</b> <span class="small muted">מחיקת כל הנתונים במערכת לצמיתות (תיקים, מסמכים, הגדרות).</span></div>
+        <button class="btn danger" id="wipeBtn"><i class="ic" data-ic="trash"></i> מחיקת הכול</button>
+      </div>
+    </div>
+  </div>
+  <div class="dlg-f"><button class="btn primary" data-close>סגירה</button></div>
+</dialog>
+
+<!-- ===== עזרה ===== -->
+<dialog id="helpModal" class="wide">
+  <div class="dlg-h"><i class="ic" data-ic="help"></i> מדריך מהיר <span class="grow"></span><button class="iconbtn x" data-close aria-label="סגירה" style="color:var(--muted)"><i class="ic" data-ic="x"></i></button></div>
+  <div class="dlg-b">
+    <details class="hlp" open><summary>ניהול תיקים</summary><div class="hb">
+      מוסיפים תיק בכפתור <b>״תיק חדש״</b>. כל תא בטבלה ניתן לעריכה <b>בלחיצה אחת</b> — שם, סוג, עדכון, משימה, מועד, אחראי וסטטוס. לחיצה על שם התיק פותחת את <b>כרטיס התיק</b> המלא עם הערות, מסמכים ויומן פעילות. מיון — בלחיצה על כותרת עמודה; סינון — בצ׳יפים ובתיבות שמעל הטבלה.
+    </div></details>
+    <details class="hlp"><summary>מסמכים: העלאה, תפריט אפשרויות, תמלול</summary><div class="hb">
+      גוררים קבצים ללשונית ״מסמכים״ (או מעלים בכפתור). <b>לחיצה אחת על מסמך פותחת תפריט אפשרויות</b>: פתיחה, תמלול לצד המסמך, שמירה כ־PDF, הדפסה, הורדה, שיוך לתיק ועוד. בתצוגת המסמך אפשר לפתוח את <b>חלונית התמלול</b> — הטקסט נשמר אוטומטית לצד הקובץ; במסמכי PDF יש חילוץ טקסט אוטומטי (דורש חיבור לאינטרנט חד־פעמי). בקובצי אודיו יש כפתורי מהירות ודילוג — נוח לתמלול הקלטות.
+    </div></details>
+    <details class="hlp"><summary>שיתוף עדכונים בדוא״ל</summary><div class="hb">
+      בלשונית ״שיתוף ועדכונים״ מסמנים תיקים, המערכת מנסחת הודעה מסודרת, ואפשר: לפתוח בתוכנת הדוא״ל, לפתוח ב־Gmail, להעתיק, או להדפיס דוח. אם ההודעה ארוכה — משתמשים ב<b>העתקה</b> ומדביקים בגוף המייל.
+    </div></details>
+    <details class="hlp"><summary>עבודה משותפת של כמה עורכי דין</summary><div class="hb">
+      שולחים לעמית את <b>קובץ המערכת</b> (הנתיב מוצג בלשונית השיתוף) — אצלו נפתח עותק עצמאי. לסנכרון: צד אחד מבצע <b>ייצוא</b>, שולח את קובץ הגיבוי במייל, והצד השני מבצע <b>ייבוא ומיזוג</b> — נתונים חדשים גוברים על ישנים, כלום לא הולך לאיבוד. מומלץ לסנכרן בסוף יום עבודה.
+    </div></details>
+    <details class="hlp"><summary>איפה הנתונים נשמרים? גיבוי ואבטחה</summary><div class="hb">
+      הכול נשמר <b>מקומית במחשב זה, בתוך הדפדפן</b> — שום מידע לא נשלח לאינטרנט, מה שמתאים לחיסיון עו״ד–לקוח. חשוב להבין: ניקוי נתוני אתרים בדפדפן ימחק גם את המערכת, ולכן מומלץ <b>לייצא גיבוי מלא מדי יום</b> (לוח הבקרה ← ״גיבוי מלא עכשיו״) ולשמור בתיקייה קבועה או בענן המשרדי.
+    </div></details>
+    <details class="hlp"><summary>קיצורים שימושיים</summary><div class="hb">
+      <kbd>Enter</kbd> שמירת תא בעריכה · <kbd>Esc</kbd> ביטול/סגירה · <kbd>Ctrl</kbd>+<kbd>P</kbd> הדפסת המסך הנוכחי · לחיצה על התאריך בכותרת מציגה את השעון המלא.
+    </div></details>
+  </div>
+  <div class="dlg-f"><button class="btn primary" data-close>הבנתי, תודה</button></div>
+</dialog>
+
+<input type="file" id="fileInput" multiple hidden>
+<input type="file" id="drFileInput" multiple hidden>
+<input type="file" id="importInput" accept=".json,application/json" hidden>
